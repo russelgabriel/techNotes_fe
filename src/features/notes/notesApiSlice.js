@@ -1,0 +1,51 @@
+import { createSelector, createEntityAdapter } from "@reduxjs/toolkit"
+import { apiSlice } from "../../app/api/apiSlice"
+
+const notesAdapter = createEntityAdapter({})
+
+const initialState = notesAdapter.getInitialState()
+
+export const notesApiSlice = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    getNotes: builder.query({
+      query: () => "/notes",
+      validateStatus: (response, result) => {
+        return response.status === 200 && !result.isError
+      },
+      keepUnusedDataFor: 5,
+      transformResponse: responseData => {
+        const loadedNotes = responseData.map(note => {
+          note.id = note._id
+          return note
+        })
+        return notesAdapter.setAll(initialState, loadedNotes)
+      },
+      providesTags: (result, error, arg) => {
+        if (result?.ids) {
+          return [
+            { type: 'note', id: 'LIST' },
+            ...result.ids.map(id => ({ type: "note", id }))
+          ]
+        } else return [{ type: 'note', id: 'LIST' }]
+      }
+    })
+  })
+})
+
+export const { useGetNotesQuery } = notesApiSlice
+
+// returns the quesry result object
+export const selectNotesResult = notesApiSlice.endpoints.getNotes.select()
+
+// creates memoized selector
+const selectNotesData = createSelector(
+  selectNotesResult,
+  notesResult => notesResult.data // normalize state object with ids and entities
+)
+
+export const {
+  selectAll: selectAllNotes,
+  selectById: selectNoteById,
+  selectIds: selectNoteIds
+  // Pass in a selector that returns the notes slice of state
+} = notesAdapter.getSelectors(state => selectNotesData(state) ?? initialState)
