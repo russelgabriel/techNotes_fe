@@ -25,12 +25,12 @@ const EditUserForm = ({ user }) => {
 
   const navigate = useNavigate()
 
-  const [username, setUsername] = useState('')
+  const [username, setUsername] = useState(user.username)
   const [validUsername, setValidUsername] = useState(false)
   const [password, setPassword] = useState('')
   const [validPassword, setValidPassword] = useState(false)
-  const [roles, setRoles] = useState(["Employee"])
-  const [active, SetActive] = useState(true)
+  const [roles, setRoles] = useState(user.roles)
+  const [active, SetActive] = useState(user.active)
 
   useEffect(() => {
     setValidUsername(USER_REGEX.test(username))
@@ -141,7 +141,7 @@ const EditUserForm = ({ user }) => {
         />
 
         <label className='form__label' htmlFor='password'>
-          Password: <span className='nowrap'>[4-12 chars incl. !@#$%]</span>
+          Password: <span className='nowrap'>[empty = no change]</span> <span className='nowrap'>[4-12 chars incl. !@#$%]</span>
         </label>
         <input
           className={`form__input ${validPwdClass}`}
